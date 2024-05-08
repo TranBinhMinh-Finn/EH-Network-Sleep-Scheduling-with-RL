@@ -66,6 +66,7 @@ class EnergyHarvesting():
         self.current_time = time_offset
     
     def pick_eh_nodes(self, ratio, all_nodes):
+        random.seed(10) 
         while len(self.eh_nodes) < len(all_nodes) * ratio:
             temp_rand = random.randint(0, len(all_nodes) - 1)
             if all_nodes[temp_rand] in self.eh_nodes:

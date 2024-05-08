@@ -1,5 +1,5 @@
 from consumption_model import send_receive_packets, send_receive_multiple_packets, MSG_TYPE
-from utils import get_neighbors, calculate_coverage_for_each_radius, calculate_coverage_radius
+from utils import get_neighbors, calculate_coverage_for_each_radius, calculate_coverage_radius, D
 from enum import Enum
 from settings import PARAMS
 import math
@@ -34,7 +34,6 @@ class EC_CKN():
         
         neighbors = get_neighbors_func(node, all_nodes=self.manager.all_nodes)
         send_receive_multiple_packets(node, neighbors, MSG_TYPE.HELLO)
-        n_erank = []
         self.neighbor_energy_rank[node] = neighbors
             
     def broadcast_neighbor_ranks(self, node, get_neighbors_func):
@@ -46,8 +45,7 @@ class EC_CKN():
          
         neighbors = get_neighbors_func(node, all_nodes=self.manager.all_nodes)
         send_receive_multiple_packets(node, neighbors, MSG_TYPE.HELLO)
-        s_erank = []
-        self.neighbor_2hop_energy_rank[node] = neighbors
+        # self.neighbor_2hop_energy_rank[node] = neighbors
     
     def compute_sleep_condition(self, node):
         """
@@ -94,21 +92,24 @@ class EC_CKN():
         
         return STATE.SLEEP
         
-    def perform_scheduling(self):
+    def perform_scheduling(self, get_neighbors_func = None):
         """
         Execute the EC_CKN algorithm.
         """
-        for node in self.manager.all_nodes:
-            self.broadcast_rank(node, self.manager.get_neighbors)
+        if get_neighbors_func is None:
+            get_neighbors_func = self.manager.get_neighbors
             
-        self.broadcast_rank(self.manager.source_node, self.manager.get_neighbors)
-        self.broadcast_rank(self.manager.sink_node, self.manager.get_neighbors)
+        for node in self.manager.all_nodes:
+            self.broadcast_rank(node, get_neighbors_func)
+            
+        self.broadcast_rank(self.manager.source_node, get_neighbors_func)
+        self.broadcast_rank(self.manager.sink_node, get_neighbors_func)
         
         for node in self.manager.all_nodes:
-            self.broadcast_neighbor_ranks(node, self.manager.get_neighbors)
+            self.broadcast_neighbor_ranks(node, get_neighbors_func)
             
-        self.broadcast_neighbor_ranks(self.manager.source_node, self.manager.get_neighbors)
-        self.broadcast_neighbor_ranks(self.manager.sink_node, self.manager.get_neighbors)
+        self.broadcast_neighbor_ranks(self.manager.source_node, get_neighbors_func)
+        self.broadcast_neighbor_ranks(self.manager.sink_node, get_neighbors_func)
             
         for node in self.manager.all_nodes:
             if node.is_dead:
@@ -137,20 +138,6 @@ class EC_CKN():
         x, y = network_size
         
         coverage_sum = 0
-        """
-        
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            # Submit each item in the list for processing
-            # The executor will schedule the items to run in separate threads
-            futures = [executor.submit(calculate_coverage, node, network_size, radio_range) for node in all_nodes]
-
-            # Wait for all the threads to complete
-            concurrent.futures.wait(futures)
-            
-            for future in concurrent.futures.as_completed(futures):
-                result = future.result()
-                coverage_sum += result
-        """
         
         for node in all_nodes:
             if self.state.get(node) == STATE.AWAKE:
@@ -160,7 +147,61 @@ class EC_CKN():
         print(f"k = {self.k}, Coverage: {coverage_sum}")
         
         return coverage_sum
+
+EH_E0 = PARAMS.get('eh_initial_energy')
+class EH_EC_CKN(EC_CKN):
+    
+    eh_nodes = []
+    
+    extend_eh_nodes_range = False
+    
+    def __init__(self, manager, eh_nodes) -> None:
+        super().__init__(manager)
+        self.eh_nodes = eh_nodes
+    
+    def reset(self):
+        super().reset()  
+        self.extend_eh_nodes_range = False
         
+    def get_neighbors(self, node, all_nodes):
+        neighbors = []
+        range_extension = 0
+        if self.extend_eh_nodes_range and node in self.eh_nodes:
+            if node in self.eh_nodes and node.energy * 5 > EH_E0:
+                range_extension = math.floor(node.energy / EH_E0 * radio_range)
+                
+        for node_ in all_nodes:
+            if D(node, node_) <= radio_range + range_extension:
+                neighbors.append(node_)
+        
+        return neighbors
+    
+    def get_awake_neighbors(self, node, all_nodes):
+        """
+        Get all awake neighboring nodes according to the scheduling algorithm. Account for eh nodes that has their range extended.
+        """
+        neighbors = self.get_neighbors(node, all_nodes)
+        return [n for n in neighbors if self.state.get(n) == STATE.AWAKE]
+
+    def get_coverage_degree(self, network_size, all_nodes):
+        
+        x, y = network_size
+        
+        coverage_sum = 0
+        
+        for node in all_nodes:
+            if self.state.get(node) == STATE.AWAKE:
+                range_extension = 0
+                if self.extend_eh_nodes_range and node in self.eh_nodes:
+                    if node in self.eh_nodes and node.energy * 5 > EH_E0:
+                        range_extension = math.floor(node.energy / EH_E0 * radio_range)
+                coverage_sum += calculate_coverage(node, network_size, radio_range + range_extension)
+        coverage_sum /= (x * y)
+        
+        print(f"k = {self.k}, Coverage: {coverage_sum}")
+        
+        return coverage_sum
+    
 calculate_coverage_for_each_radius()
 
 def calculate_coverage(node, network_size, rr = radio_range):
