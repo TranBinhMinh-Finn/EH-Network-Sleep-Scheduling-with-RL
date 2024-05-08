@@ -52,7 +52,7 @@ def E_Rx(k):
 round_duration = 2 # minutes
 EHmax = 0.00008
 charge_effi = PARAMS.get('charge_efficiency')
-
+EH_E0 = PARAMS.get('eh_initial_energy')
 
 class EnergyHarvesting():
     
@@ -72,6 +72,7 @@ class EnergyHarvesting():
             if all_nodes[temp_rand] in self.eh_nodes:
                 continue
             self.eh_nodes.append(all_nodes[temp_rand])
+            all_nodes[temp_rand].energy = EH_E0
             
     def tick(self):
         self.current_time += round_duration
@@ -88,6 +89,8 @@ class EnergyHarvesting():
                 node.energy += charge_effi * (self.harvested_energy - consumed_energy)
             else:
                 node.energy += self.harvested_energy
+            if node.energy > EH_E0:
+                node.energy = EH_E0
         
     def is_eh_node(self, node):
         return node in self.eh_nodes
