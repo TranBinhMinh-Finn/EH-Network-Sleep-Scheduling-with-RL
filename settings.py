@@ -1,7 +1,7 @@
 PARAMS = {
-    'sensor_network_size':  (600, 600),
-    'nodes_number': 400,
-    'base_station' : (550, 550),
+    'sensor_network_size':  (300, 400),
+    'nodes_number': 100,
+    'base_station' : (250, 350),
     'source_node' : (50, 50),
     'initial_energy' : 80 * 10 ** 12,  # J 
     'eh_initial_energy': 100 * 10 ** 12, # J 
@@ -18,9 +18,9 @@ PARAMS = {
     'p': 0.05,
     'rr': 60,
     
-    'eh_ratio': 0.3,
+    'eh_ratio': 0.1,
     'charge_efficiency': 0.75,
-    'D_Target': 4,
+    'D_Target': 7,
 }
 
 

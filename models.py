@@ -20,6 +20,7 @@ class Node():
         Returns the dead flag. The node is dead if it has no energy.
         """
         if self.energy <= 0:
+            self.energy = 0
             self.dead_flag = True
         return self.dead_flag
         

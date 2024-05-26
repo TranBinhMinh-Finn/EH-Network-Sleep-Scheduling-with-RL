@@ -1,7 +1,10 @@
 from settings import PARAMS
 import math
+import torch
 
 radio_range = PARAMS.get('rr')
+
+# if torch.cuda.is_available() else "cpu")
 
 def D(node_q, node_s):
     """
@@ -65,5 +68,23 @@ def calculate_coverage_radius(radius, top_cutoff, bottom_cutoff, left_cutoff, ri
     
     return coverage
         
-        
+def calculate_coverage(node, network_size, rr = radio_range):
+    x, y = network_size
+    x_node, y_node = node.coordinates    
+    top_cutoff = rr
+    bottom_cutoff = rr
+    left_cutoff = rr
+    right_cutoff = rr
+    if x_node + rr > x:
+        right_cutoff = x - x_node 
+    if x_node - rr < 0:
+        left_cutoff = x_node 
+    if y_node + rr > y:
+        top_cutoff = y - y_node 
+    if y_node - rr < 0:
+        bottom_cutoff = y_node
+     
+    return calculate_coverage_radius(radius=rr, top_cutoff=top_cutoff, bottom_cutoff=bottom_cutoff, left_cutoff=left_cutoff, right_cutoff=right_cutoff)
+
+calculate_coverage_for_each_radius()
         
