@@ -1,11 +1,11 @@
-from models import Node, Sink
-from settings import PARAMS
+from common.models import Node, Sink
+from common.settings import PARAMS
 
 import pandas as pd 
 import numpy as np
 
 import math
-from utils import get_neighbors, D
+from utils.common import get_neighbors, D
 
 radio_range = PARAMS.get('rr')
 

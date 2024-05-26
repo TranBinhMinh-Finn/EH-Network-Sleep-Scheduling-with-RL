@@ -1,4 +1,4 @@
-from settings import PARAMS
+from common.settings import PARAMS
 import math
 import torch
 

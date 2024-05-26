@@ -1,11 +1,11 @@
-from consumption_model import send_receive_multiple_packets, MSG_TYPE
-from utils import get_neighbors, D, calculate_coverage
+from common.consumption_model import send_receive_multiple_packets, MSG_TYPE
+from utils.common import get_neighbors, D, calculate_coverage
 from enum import Enum
-from settings import PARAMS
+from common.settings import PARAMS
 from .EC_CKN import EC_CKN, STATE
 import torch
-from rl_model.model import DQN_model
-import logger
+from rl_model.DQN_IQL import DQN_model
+import utils.logger as logger
 
 radio_range = PARAMS.get('rr')
     
@@ -52,7 +52,7 @@ class RL_EH_EC_CKN(EC_CKN):
         
         return neighbors
     
-    def perform_eh_nodes_sleep_scheduling(self, harvested_energy):
+    def perform_eh_nodes_sleep_scheduler(self, harvested_energy):
         for node in self.eh_nodes:
             self.last_state[node] = self.get_state(node, harvested_energy)
             action = self.model.get(node).select_action(self.last_state[node])[0].item()

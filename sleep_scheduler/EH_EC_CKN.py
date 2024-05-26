@@ -1,7 +1,7 @@
-from consumption_model import send_receive_multiple_packets, MSG_TYPE
-from utils import get_neighbors, D, calculate_coverage, calculate_coverage_for_each_radius
+from common.consumption_model import send_receive_multiple_packets, MSG_TYPE
+from utils.common import get_neighbors, D, calculate_coverage, calculate_coverage_for_each_radius
 from enum import Enum
-from settings import PARAMS
+from common.settings import PARAMS
 from .EC_CKN import EC_CKN, STATE
 import math
 

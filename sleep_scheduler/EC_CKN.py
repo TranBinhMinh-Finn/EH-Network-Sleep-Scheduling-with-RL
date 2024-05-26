@@ -1,7 +1,7 @@
-from consumption_model import send_receive_multiple_packets, MSG_TYPE
-from utils import get_neighbors, D, calculate_coverage
+from common.consumption_model import send_receive_multiple_packets, MSG_TYPE
+from utils.common import get_neighbors, D, calculate_coverage
 from enum import Enum
-from settings import PARAMS
+from common.settings import PARAMS
 
 class STATE(Enum):
     AWAKE = True

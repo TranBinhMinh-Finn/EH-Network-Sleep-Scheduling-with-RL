@@ -1,7 +1,7 @@
-from settings import PARAMS
+from common.settings import PARAMS
 import math
 from enum import Enum
-from utils import D
+from utils.common import D
 import random
 
 class MSG_TYPE(Enum):

@@ -1,6 +1,6 @@
-from settings import PARAMS
-from consumption_model import D
-from utils import get_neighbors
+from common.settings import PARAMS
+from common.consumption_model import D
+from utils.common import get_neighbors
 
 radio_range = PARAMS.get('rr')
 

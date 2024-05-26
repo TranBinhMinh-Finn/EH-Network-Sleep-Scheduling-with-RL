@@ -1,17 +1,17 @@
-from simulator import SimManager
-from consumption_model import send_receive_packets, MSG_TYPE, EnergyHarvesting
-from settings import PARAMS
+from common.simulator import SimManager
+from common.consumption_model import send_receive_packets, MSG_TYPE, EnergyHarvesting
+from common.settings import PARAMS
 # from sleep_scheduler import EC_CKN, EH_EC_CKN
-from sleep_scheduling.RL_EH_EC_CKN import RL_EH_EC_CKN
-from sleep_scheduling.EH_EC_CKN import EH_EC_CKN
-from routing_protocol import TPGFRouter
-import plotter
+from sleep_scheduler.RL_EH_EC_CKN import RL_EH_EC_CKN
+from sleep_scheduler.EH_EC_CKN import EH_EC_CKN
+from common.routing_protocol import TPGFRouter
+import utils.plotter as plotter
 # initiallize the network
 
 import torch
 from matplotlib import pyplot as plt
 import math
-import logger
+import utils.logger as logger
 
 import time
 
@@ -138,7 +138,7 @@ for i in range(num_episodes):
         eh_model.tick()
         eh_model.save_energy_states()
         
-        sleep_scheduler.perform_eh_nodes_sleep_scheduling(eh_model.harvested_energy)
+        sleep_scheduler.perform_eh_nodes_sleep_scheduler(eh_model.harvested_energy)
 
         sleep_scheduler.k = 1
         sleep_scheduler.reset()
