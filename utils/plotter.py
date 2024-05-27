@@ -7,7 +7,7 @@ if is_ipython:
     from IPython import display
 
 
-def plot_durations(episode_lifetimes, reward_sums, epsilons, show_result=False):
+def plot_durations(episode_lifetimes, reward_sums, show_result=False):
     plt.figure(1)
     lifetimes_t = torch.tensor(episode_lifetimes, dtype=torch.int)
     if show_result:

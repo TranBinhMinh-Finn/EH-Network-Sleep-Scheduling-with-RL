@@ -4,7 +4,7 @@ from enum import Enum
 from common.settings import PARAMS
 from .EC_CKN import EC_CKN, STATE
 import torch
-from rl_model.DQN_IQL import DQN_model
+from rl_modules.DQN_IQL import DQN_model
 import utils.logger as logger
 
 radio_range = PARAMS.get('rr')
@@ -17,22 +17,14 @@ class RL_EH_EC_CKN(EC_CKN):
     model = {}
     last_state = {}
     
-    def __init__(self, manager, eh_nodes, device) -> None:
+    def __init__(self, manager, eh_nodes): # ,device):
+        logger.debug('Start initializing sleep Scheduler') 
         super().__init__(manager)
         self.eh_nodes = eh_nodes
-        self.device = device
-        for node in self.eh_nodes:
-            self.model[node] = DQN_model(n_observations= 2 + len(self.neighbor_1hop.get(node)) + len(self.neighbor_2hop.get(node)), device = device)
-
-    def all_non_eh_node_awake(self):
-        for node, node_state in self.state.items():
-            if node.is_dead:
-                continue
-            if node in self.eh_nodes:
-                continue
-            if node_state == STATE.SLEEP:
-                return False
-        return True
+        logger.debug('Fnished initializing sleep Scheduler') 
+        # self.device = device
+        # for node in self.eh_nodes:
+        #     self.model[node] = DQN_model(n_observations= 2 + len(self.neighbor_1hop.get(node)) + len(self.neighbor_2hop.get(node)), device = device)
     
     def reset(self):
         pass
@@ -52,9 +44,21 @@ class RL_EH_EC_CKN(EC_CKN):
         
         return neighbors
     
+    def perform_eh_nodes_actions(self, actions):
+        for node, action in actions.items():
+            if action == 61:
+                self.range_extend_value[node] = 0
+                self.state[node] = STATE.SLEEP
+                logger.debug('TRAIN', f'Node {node.id} is sleeping.')
+            else:
+                self.state[node] = STATE.AWAKE
+                self.range_extend_value[node] = action
+                logger.debug('TRAIN', f'Node {node.id} is extending range by {action}.')
+
+     
     def perform_eh_nodes_sleep_scheduler(self, harvested_energy):
         for node in self.eh_nodes:
-            self.last_state[node] = self.get_state(node, harvested_energy)
+            self.last_state[node] = self.get_node_state(node, harvested_energy)
             action = self.model.get(node).select_action(self.last_state[node])[0].item()
             if action == 61:
                 self.range_extend_value[node] = 0
@@ -66,7 +70,7 @@ class RL_EH_EC_CKN(EC_CKN):
                 logger.debug('TRAIN', f'Node {node.id} is extending range by {action}.')
             logger.debug('TRAIN', f'Node {node.id} energy: {node.energy}.')
             
-    def get_state(self, node, harvested_energy):
+    def get_node_state(self, node, harvested_energy):
         neighbors = self.neighbor_1hop.get(node)
         neighbors_2hop = self.neighbor_2hop.get(node)
         state = [node.energy, harvested_energy]
@@ -80,37 +84,37 @@ class RL_EH_EC_CKN(EC_CKN):
                 state.append(0)
             else:
                 state.append(node_.energy)
-                
-        return torch.tensor([state], device=self.device, dtype=torch.float)
-    
-    def update_model(self, harvested_energy, reward):
-        """
-        Update new experiences for the model
-        """
-        for node in self.eh_nodes:
-            last_state = self.last_state.get(node)
         
-            state = self.get_state(node, harvested_energy)
-            # get action:
-            action = 0
-            if self.state.get(node) == STATE.SLEEP:
-                action = 61
-            else:
-                action = self.range_extend_value.get(node)
-            
-            action = torch.tensor([[action]], device=self.device)
-            reward = torch.tensor([reward], device=self.device)
-            model = self.model.get(node)
-            
-            model.memory.push(last_state, action, state, reward)
-            model.optimize_model()
-            model.soft_update()
+        return state        
+        # return torch.tensor([state], device=self.device, dtype=torch.float)
     
+    # def update_model(self, harvested_energy, reward):
+    #     """
+    #     Update new experiences for the model
+    #     """
+    #     for node in self.eh_nodes:
+    #         last_state = self.last_state.get(node)
+    #     
+    #         state = self.get_node_state(node, harvested_energy)
+    #         # get action:
+    #         action = 0
+    #         if self.state.get(node) == STATE.SLEEP:
+    #             action = 61
+    #         else:
+    #             action = self.range_extend_value.get(node)
+    #         
+    #         action = torch.tensor([[action]], device=self.device)
+    #         reward = torch.tensor([reward], device=self.device)
+    #         model = self.model.get(node)
+    #         
+    #         model.memory.push(last_state, action, state, reward)
+    #         model.optimize_model()
+    #         model.soft_update()
+
     def compute_sleep_condition(self, node):
         """
         Compute whether the node can sleep or not in the next round.
         """
-        
         neighbors = self.neighbor_1hop.get(node)
             
         # Stay awake if the node or its neighbors have less than k neighbors 
