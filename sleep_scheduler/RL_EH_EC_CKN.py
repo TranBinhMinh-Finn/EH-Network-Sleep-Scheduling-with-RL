@@ -17,14 +17,9 @@ class RL_EH_EC_CKN(EC_CKN):
     model = {}
     last_state = {}
     
-    def __init__(self, manager, eh_nodes): # ,device):
-        logger.debug('Start initializing sleep Scheduler') 
+    def __init__(self, manager, eh_nodes):
         super().__init__(manager)
         self.eh_nodes = eh_nodes
-        logger.debug('Fnished initializing sleep Scheduler') 
-        # self.device = device
-        # for node in self.eh_nodes:
-        #     self.model[node] = DQN_model(n_observations= 2 + len(self.neighbor_1hop.get(node)) + len(self.neighbor_2hop.get(node)), device = device)
     
     def reset(self):
         pass
@@ -86,30 +81,6 @@ class RL_EH_EC_CKN(EC_CKN):
                 state.append(node_.energy)
         
         return state        
-        # return torch.tensor([state], device=self.device, dtype=torch.float)
-    
-    # def update_model(self, harvested_energy, reward):
-    #     """
-    #     Update new experiences for the model
-    #     """
-    #     for node in self.eh_nodes:
-    #         last_state = self.last_state.get(node)
-    #     
-    #         state = self.get_node_state(node, harvested_energy)
-    #         # get action:
-    #         action = 0
-    #         if self.state.get(node) == STATE.SLEEP:
-    #             action = 61
-    #         else:
-    #             action = self.range_extend_value.get(node)
-    #         
-    #         action = torch.tensor([[action]], device=self.device)
-    #         reward = torch.tensor([reward], device=self.device)
-    #         model = self.model.get(node)
-    #         
-    #         model.memory.push(last_state, action, state, reward)
-    #         model.optimize_model()
-    #         model.soft_update()
 
     def compute_sleep_condition(self, node):
         """
@@ -191,6 +162,4 @@ class RL_EH_EC_CKN(EC_CKN):
                 coverage_sum += calculate_coverage(node, network_size, radio_range + range_extension)
         coverage_sum /= (x * y)
         
-        # print(f"k = {self.k}, Coverage: {coverage_sum}")
-
         return coverage_sum

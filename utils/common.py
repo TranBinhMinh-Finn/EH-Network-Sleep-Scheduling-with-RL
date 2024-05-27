@@ -1,6 +1,5 @@
 from common.settings import PARAMS
 import math
-import torch
 
 radio_range = PARAMS.get('rr')
 
