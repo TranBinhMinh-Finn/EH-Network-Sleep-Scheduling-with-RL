@@ -44,26 +44,11 @@ class RL_EH_EC_CKN(EC_CKN):
             if action == 61:
                 self.range_extend_value[node] = 0
                 self.state[node] = STATE.SLEEP
-                logger.debug('TRAIN', f'Node {node.id} is sleeping.')
+                # logger.debug('TRAIN', f'Node {node.id} is sleeping.')
             else:
                 self.state[node] = STATE.AWAKE
                 self.range_extend_value[node] = action
-                logger.debug('TRAIN', f'Node {node.id} is extending range by {action}.')
-
-     
-    def perform_eh_nodes_sleep_scheduler(self, harvested_energy):
-        for node in self.eh_nodes:
-            self.last_state[node] = self.get_node_state(node, harvested_energy)
-            action = self.model.get(node).select_action(self.last_state[node])[0].item()
-            if action == 61:
-                self.range_extend_value[node] = 0
-                self.state[node] = STATE.SLEEP
-                logger.debug('TRAIN', f'Node {node.id} is sleeping.')
-            else:
-                self.state[node] = STATE.AWAKE
-                self.range_extend_value[node] = action
-                logger.debug('TRAIN', f'Node {node.id} is extending range by {action}.')
-            logger.debug('TRAIN', f'Node {node.id} energy: {node.energy}.')
+                # logger.debug('TRAIN', f'Node {node.id} is extending range by {action}.')
             
     def get_node_state(self, node, harvested_energy):
         neighbors = self.neighbor_1hop.get(node)

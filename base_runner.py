@@ -15,7 +15,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 manager = SimManager()
 manager.make_sink()
 manager.make_source()
-manager.generate_nodes(seed=1556)
+manager.generate_nodes(seed=10)
 
 eh_model = EnergyHarvesting(time_offset=10*60)
 eh_model.pick_eh_nodes(ratio = PARAMS.get('eh_ratio'), all_nodes = manager.all_nodes)
@@ -58,7 +58,7 @@ while not manager.all_node_dead:
         sleep_scheduler.perform_scheduling(sleep_scheduler.get_neighbors)
         D = sleep_scheduler.get_coverage_degree(network_size = network_size, all_nodes = manager.all_nodes)
         
-    print(sleep_scheduler.k)
+    # print(sleep_scheduler.k)
     if D < D_Target:
         print("Fail to satisfy required coverage.")
         # break

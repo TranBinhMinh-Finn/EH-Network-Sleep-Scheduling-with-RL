@@ -14,7 +14,10 @@ if torch.cuda.is_available():
 else:
     num_episodes = 50
     
-trainer = Trainer(n_episode=num_episodes, device=device) 
+trainer = Trainer(n_episode=num_episodes, 
+                  device=device,
+                  coordinate_seed = 10,
+                  save_energy_states = False) 
 
 trainer.train()
 

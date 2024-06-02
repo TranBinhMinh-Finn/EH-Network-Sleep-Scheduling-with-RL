@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import random
 import math
-
+from utils import logger
 class DQN(nn.Module):
     
     def __init__(self, n_observations, n_actions):
@@ -15,21 +15,32 @@ class DQN(nn.Module):
         self.layer2 = nn.Linear(128, 128)
         self.layer3 = nn.Linear(128, n_actions)
         
-    # Called with either one element to determine next action, or a batch
-    # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, x):
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
         return self.layer3(x)
-    
-BATCH_SIZE = 32
+
+class DRQN(nn.Module):
+    def __init__(self, n_observations, n_actions):
+        super(DRQN, self).__init__()
+        self.rnn_hidden = None
+        
+        self.layer1 = nn.Linear(n_observations, 128)
+        self.rnn = nn.LSTM(128, 128)
+        self.layer3 = nn.Linear(128, n_actions)
+        
+    def forward(self, x):
+        x = F.relu(self.layer1(x))
+        x, _ = self.rnn(x)
+        return self.layer3(x)
+
+BATCH_SIZE = 64
 GAMMA = 0.99
-EPS_START = 0.9
-EPS_END = 0.05
+EPS_START = 0.99
+EPS_END = 0.001
 EPS_DECAY = 10000
 TAU = 0.005
-LR = 1e-4
-
+LR = 1e-6
 
 class DQN_model():
     
@@ -44,7 +55,7 @@ class DQN_model():
                  eps_decay = EPS_DECAY,
                  tau = TAU,
                  lr = LR,
-                 
+                 decay_threshold = 5000,
                  ) -> None:
         self.batch_size = batch_size
         self.gamma = gamma
@@ -54,16 +65,19 @@ class DQN_model():
         self.tau = tau
         self.lr = lr
         self.device = device
-        
+        self.decay_threshold = decay_threshold
+        self.decay_factor = 0
         self.n_actions = n_actions
         self.n_observations = n_observations
         
-        self.policy_net = DQN(self.n_observations, self.n_actions).to(device)
-        self.target_net = DQN(self.n_observations, self.n_actions).to(device)
+        self.policy_net = DRQN(self.n_observations, self.n_actions).to(device)
+        self.target_net = DRQN(self.n_observations, self.n_actions).to(device)
 
         self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=LR, amsgrad=True)
         
-        self.memory = ReplayMemory(5000)
+        self.sum_loss = 0
+        self.count_loss = 0
+        self.memory = ReplayMemory(10000)
         
     steps_done = 0   
     
@@ -72,7 +86,10 @@ class DQN_model():
         Return the action for a node using epsilon greedy strategy 
         """
         sample = random.random()
-        eps_threshhold = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.steps_done / self.eps_decay)
+        
+        if self.steps_done > self.decay_threshold:
+            self.decay_factor = self.steps_done - self.decay_threshold
+        eps_threshhold = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.decay_factor / self.eps_decay)
         self.steps_done += 1
         if sample > eps_threshhold:
             with torch.no_grad():
@@ -119,8 +136,13 @@ class DQN_model():
         self.optimizer.zero_grad()
         loss.backward()
         
+        self.sum_loss += loss.item()
+        self.count_loss += 1
+
         torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 100)
         self.optimizer.step()
+        
+        return 0 if self.count_loss == 0 else self.sum_loss / self.count_loss 
     
     def soft_update(self):
         target_net_state_dict = self.target_net.state_dict()
@@ -128,3 +150,6 @@ class DQN_model():
         for key in policy_net_state_dict:
             target_net_state_dict[key] = policy_net_state_dict[key]*self.tau + target_net_state_dict[key]*(1-self.tau)
         self.target_net.load_state_dict(target_net_state_dict)
+        
+    def loss(self):
+        return 0 if self.count_loss == 0 else self.sum_loss / self.count_loss

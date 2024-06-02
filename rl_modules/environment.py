@@ -7,14 +7,16 @@ from sleep_scheduler.RL_EH_EC_CKN import RL_EH_EC_CKN
 
 import utils.logger as logger
 
+from datetime import datetime
+
 EH_E0 = PARAMS.get('eh_initial_energy')
 
 radio_range = PARAMS.get('rr')
-    
 class Environment():
     def __init__(self, 
                  coordinate_seed, 
-                 n_actions = radio_range + 2):
+                 n_actions = radio_range + 2,
+                 time_offset = 10 * 60):
         # simulation
 
         self.manager = SimManager()
@@ -22,7 +24,8 @@ class Environment():
         self.manager.make_source()
         self.manager.generate_nodes(seed = coordinate_seed)
         
-        self.eh_model = EnergyHarvesting()
+        self.time_offset = time_offset
+        self.eh_model = EnergyHarvesting(time_offset=self.time_offset)
         self.eh_model.pick_eh_nodes(ratio = PARAMS.get('eh_ratio'), 
                                     all_nodes = self.manager.all_nodes)
         
@@ -45,7 +48,7 @@ class Environment():
         self.manager.reset_nodes()
         for node in self.eh_model.eh_nodes:
             node.energy = EH_E0
-        self.eh_model.current_time = 0
+        self.eh_model.current_time = self.time_offset
         return {k: self.sleep_scheduler.get_node_state(k, self.eh_model.harvested_energy) for k in self.agents}
     
     def perform_routing_and_transmission(self):
@@ -76,7 +79,6 @@ class Environment():
         self.eh_model.tick()
         self.eh_model.save_energy_states()
         
-        #TODO: add function
         self.sleep_scheduler.perform_eh_nodes_actions(action)
         
         self.sleep_scheduler.k = 1
@@ -107,6 +109,21 @@ class Environment():
         observations = {k: self.sleep_scheduler.get_node_state(k, self.eh_model.harvested_energy) for k in self.agents}
         
         return observations, reward, terminal
+    
+    filename = f"res/{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.log"
+    
+    def get_node_energy_state(self):
+        return {node : node.energy for node in self.manager.all_nodes}
+    
+    def get_eh_node_energy_state(self):
+        return {node.id : node.energy for node in self.eh_model.eh_nodes}
+    
+    def get_non_eh_node_energy_state(self):
+        nodes = [node for node in self.manager.all_nodes if node not in self.eh_model.eh_nodes]
+        return {node.id : node.energy for node in self.eh_model.eh_nodes}
+    
+            
+                
         
          
     
