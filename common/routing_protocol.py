@@ -8,11 +8,11 @@ class TPGFRouter():
     """
     Create the routing path for nodes in a round according to the TPGF Protocol.
     """
-    nodes_mark = {}
     
-    next_hop = {}
     def __init__(self, manager) -> None:
         self.manager = manager
+        self.nodes_mark = {}
+        self.next_hop = {}
     
     def reset(self):
         self.nodes_mark.clear()

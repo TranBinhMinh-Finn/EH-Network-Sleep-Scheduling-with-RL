@@ -34,9 +34,10 @@ def generate_node_coordinates(nodes_number, x_size, y_size, seed = 42):
     return df
 
 class SimManager():
-    all_nodes = []
-    sink_node = None
-    cluster_heads = []
+    def __init__(self) -> None:
+        self.all_nodes = []
+        self.sink_node = None
+        self.cluster_heads = []
     
     def generate_nodes(self, nodes_number = PARAMS.get('nodes_number'), generate_algo = generate_node_coordinates, seed = 42):
         """
