@@ -66,7 +66,6 @@ class EnergyHarvesting():
         random.seed(10) 
         while len(self.eh_nodes) < len(all_nodes) * ratio:
             temp_rand = random.randint(0, len(all_nodes) - 1)
-            print(temp_rand)
             if all_nodes[temp_rand] in self.eh_nodes:
                 continue
             self.eh_nodes.append(all_nodes[temp_rand])
