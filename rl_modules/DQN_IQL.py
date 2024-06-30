@@ -21,18 +21,26 @@ class DQN(nn.Module):
         return self.layer3(x)
 
 class DRQN(nn.Module):
-    def __init__(self, n_observations, n_actions):
+    def __init__(self, n_observations, n_actions, device):
         super(DRQN, self).__init__()
-        self.rnn_hidden = None
-        
-        self.layer1 = nn.Linear(n_observations, 128)
-        self.rnn = nn.LSTM(128, 128)
-        self.layer3 = nn.Linear(128, n_actions)
+        self.conv1 = nn.Conv1d(n_observations, 128, 1)
+        self.conv2 = nn.Conv1d(128, 128, 1)
+        self.gru = nn.GRU(128, 128)
+        self.hidden_layer = torch.zeros(1, 128, device=device)
+        self.layer1 = nn.Linear(128, 64)
+        self.layer2 = nn.Linear(64, 64)
+        self.layer3 = nn.Linear(64, n_actions)
         
     def forward(self, x):
-        x = F.relu(self.layer1(x))
-        x, _ = self.rnn(x)
-        return self.layer3(x)
+        x = x.permute(1, 0)
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = x.permute(1, 0)
+        x, _ = self.gru(x)
+        x = F.relu(self.layer1(F.relu(x)))
+        x = F.relu(self.layer2(x))
+        x = self.layer3(x)
+        return x
 
 BATCH_SIZE = 64
 GAMMA = 0.99
@@ -70,11 +78,11 @@ class DQN_model():
         self.n_actions = n_actions
         self.n_observations = n_observations
         
-        self.policy_net = DRQN(self.n_observations, self.n_actions).to(device)
-        self.target_net = DRQN(self.n_observations, self.n_actions).to(device)
+        self.policy_net = DRQN(self.n_observations, self.n_actions, device).to(device)
+        self.target_net = DRQN(self.n_observations, self.n_actions, device).to(device)
 
         self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=LR, amsgrad=True)
-        
+        self.lr_scheduler = optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.9)
         self.sum_loss = 0
         self.count_loss = 0
         self.memory = ReplayMemory(10000)
@@ -141,6 +149,8 @@ class DQN_model():
 
         torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 100)
         self.optimizer.step()
+        if self.steps_done > self.decay_threshold:
+            self.lr_scheduler.step()
         
         return 0 if self.count_loss == 0 else self.sum_loss / self.count_loss 
     

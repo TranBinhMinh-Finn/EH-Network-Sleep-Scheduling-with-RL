@@ -9,7 +9,8 @@ radio_range = PARAMS.get('rr')
     
 EH_E0 = PARAMS.get('eh_initial_energy')
 
-E_Critical = 2.5 * 100 * 10 ** 9
+E_Critical = 2.5 * 10 ** 9
+
 class EH_EC_CKN(EC_CKN):
     
     eh_nodes = []

@@ -10,7 +10,6 @@ class MSG_TYPE(Enum):
     
 E_elec = PARAMS.get('E_elec')
 E_fs = PARAMS.get('E_fs')
-E_da = PARAMS.get('E_da')
 E_mp = PARAMS.get('E_mp')
 p = PARAMS.get('p')
 d0 = E_fs / E_mp
@@ -31,9 +30,6 @@ def send_receive_multiple_packets(sender, receivers, message_type):
     """
     for receiver in receivers:
         send_receive_packets(sender, receiver, message_type)
-
-def cluster_head_data_fusion(node):
-    node.energy -= PARAMS.get('E_da') * MSG_TYPE.DATA.value
 
 def E_Tx(k,d):
     """

@@ -73,7 +73,7 @@ class Environment():
     def calculate_reward(self, D):
         if D >= self.D_Target:
             return 1
-        return 0
+        return -1
     
     def step(self, action):
         self.eh_model.tick()
@@ -108,7 +108,7 @@ class Environment():
         
         observations = {k: self.sleep_scheduler.get_node_state(k, self.eh_model.harvested_energy) for k in self.agents}
         
-        return observations, reward, terminal
+        return observations, reward, terminal, D
     
     filename = f"res/{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.log"
     

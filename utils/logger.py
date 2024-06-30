@@ -2,10 +2,10 @@ from datetime import datetime
 import logging
 
 logger = logging.getLogger('my_logger')
-logger.setLevel(logging.DEBUG)
-# file_name = f"logs/{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.log"
-# file_handler = logging.FileHandler(file_name)
-# logger.addHandler(file_handler)
+logger.setLevel(logging.INFO)
+file_name = f"logs/dqn/map_3/{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.log"
+file_handler = logging.FileHandler(file_name)
+logger.addHandler(file_handler)
 
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)

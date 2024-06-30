@@ -13,23 +13,10 @@ def generate_node_coordinates(nodes_number, x_size, y_size, seed = 42):
     """
     Generate Random coordinates
     """
-    
-    # X, Y = make_blobs(n_samples=nodes_number, 
-    #                   centers=12, 
-    #                   cluster_std=1.0, 
-    #                   center_box=(-10, 10), 
-    #                   shuffle=True, 
-    #                   random_state=42, 
-    #                   return_centers=False)
-    
     np.random.seed(seed)
     X = np.random.randint(0, x_size, nodes_number)
     Y = np.random.randint(0, y_size, nodes_number)
     df = pd.DataFrame(data = zip(X,Y))
-    # df = pd.DataFrame(data = X)
-    # df /= df.abs().max()
-    # df*=x_size/2
-    # df+=x_size/2
     
     return df
 
@@ -37,7 +24,6 @@ class SimManager():
     def __init__(self) -> None:
         self.all_nodes = []
         self.sink_node = None
-        self.cluster_heads = []
     
     def generate_nodes(self, nodes_number = PARAMS.get('nodes_number'), generate_algo = generate_node_coordinates, seed = 42):
         """

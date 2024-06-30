@@ -7,6 +7,7 @@ is_ipython = 'inline' in matplotlib.get_backend()
 if is_ipython:
     from IPython import display
 
+from datetime import datetime
 
 fig, axs = plt.subplots(1, layout = "constrained")
 fig.set_figheight(5)
@@ -51,14 +52,16 @@ def plot_durations(episode_lifetimes,
 
     ax.legend(loc="lower left")
     
-    plt.pause(0.001)  # pause a bit so that plots are updated
-    if is_ipython:
-        if not show_result:
-            display.display(plt.gcf())
-            display.clear_output(wait=True)
-        else:
-            # plt.savefig('result.png')
-            display.display(plt.gcf())
+    # plt.pause(0.001)  # pause a bit so that plots are updated
+    # if is_ipython:
+    #     if not show_result:
+    #         display.display(plt.gcf())
+    #         display.clear_output(wait=True)
+    #     else:
+    #         display.display(plt.gcf())
+    if show_result:
+        file_name = f"res/gru/plots/{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.png"
+        fig.savefig(file_name)
             
 
 ax_epsilon = None
@@ -139,3 +142,23 @@ def plot_loss(node_energy, show_result = False):
     if show_result:
         file_name = f"res/{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.png"
         # fig.savefig(file_name)
+        
+
+def plot_coordinates(coordinates, solar):
+    fig, ax = plt.subplots(1, layout = "constrained")
+    fig.set_figheight(5)
+    fig.set_figwidth(5)
+    X = [c[0] for c in coordinates]
+    Y = [c[1] for c in coordinates]
+    
+    X.append(10)
+    Y.append(10)
+    
+    X.append(180)
+    Y.append(180)
+    
+    color = ['blue' if i == 0 else 'green' for i in solar]
+    color.append('red')
+    color.append('black')
+    ax.scatter(X, Y, c = color)
+    plt.show()

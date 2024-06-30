@@ -61,7 +61,7 @@ while not manager.all_node_dead:
     # print(sleep_scheduler.k)
     if D < D_Target:
         print("Fail to satisfy required coverage.")
-        # break
+        break
     
     router.reset()
     router.choose_nexthop(base_station=manager.sink_node, node=manager.source_node, get_neighbors_func=sleep_scheduler.get_awake_neighbors)
@@ -88,6 +88,7 @@ while not manager.all_node_dead:
     
     for node in manager.all_nodes:
         if node.is_dead and fnd == 0 and node not in eh_model.eh_nodes:
+            print(f"{node.id} is dead")
             fnd = current_round
     
     if fnd != 0:
